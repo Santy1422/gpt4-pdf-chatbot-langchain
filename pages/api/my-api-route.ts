@@ -28,7 +28,7 @@ export default async function handler(req: CustomNextApiRequest, res: NextApiRes
   try {
     await new Promise<void>((resolve, reject) => {
       // @ts-ignore
-      upload.single('pdf')(req, res, (err: MulterError) => {
+      upload.single('pdf')(req as any, res as any, (err: MulterError) => {
         if (err) {
           if (err instanceof multer.MulterError) {
             res.status(500).json({ error: 'Failed to upload file' });
