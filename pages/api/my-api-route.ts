@@ -26,20 +26,25 @@ export const config = {
 
 export default async function handler(req: CustomNextApiRequest, res: NextApiResponse) {
   try {
-    await upload.single('pdf')(req as Request, res as Response, async (err: MulterError) => {
-      if (err) {
-        if (err instanceof multer.MulterError) {
-          res.status(500).json({ error: 'Failed to upload file' });
-        } else {
-          res.status(500).json({ error: 'An unexpected error occurred' });
+    await new Promise<void>((resolve, reject) => {
+      upload.single('pdf')(req as Request, res as Response, (err: MulterError) => {
+        if (err) {
+          if (err instanceof multer.MulterError) {
+            res.status(500).json({ error: 'Failed to upload file' });
+          } else {
+            res.status(500).json({ error: 'An unexpected error occurred' });
+          }
+          reject();
+          return;
         }
-        return;
-      }
-
-      const pdfPath = path.join(process.cwd(), 'docs', req.file.filename);
-      await run(pdfPath);
-      res.status(200).json({ message: 'Ingestion complete' });
+        
+        resolve();
+      });
     });
+
+    const pdfPath = path.join(process.cwd(), 'docs', req.file.filename);
+    await run(pdfPath);
+    res.status(200).json({ message: 'Ingestion complete' });
   } catch (error) {
     res.status(500).json({ error: 'Failed to ingest data' });
   }
