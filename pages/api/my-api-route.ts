@@ -2,6 +2,9 @@ import { run } from '../../scripts/ingest-data';
 import { NextApiRequest, NextApiResponse } from 'next';
 import multer, { MulterError } from 'multer';
 import path from 'path';
+import { Request, ParamsDictionary, ParsedQs } from 'express';
+
+interface CustomNextApiRequest extends NextApiRequest, Request<ParamsDictionary, any, any, ParsedQs> {}
 
 const storage = multer.diskStorage({
   destination: './docs', // Ruta de destino para guardar los archivos PDF
@@ -19,7 +22,7 @@ export const config = {
   },
 };
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(req: CustomNextApiRequest, res: NextApiResponse) {
   try {
     await upload.single('pdf')(req, res, async (err: MulterError) => {
       if (err) {
