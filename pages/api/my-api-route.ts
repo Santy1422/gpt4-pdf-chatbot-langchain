@@ -26,15 +26,9 @@ export const config = {
 
 export default async function handler(req: CustomNextApiRequest, res: NextApiResponse) {
   try {
-    await new Promise<void>((resolve, reject) => {
-      upload.single('pdf')(req, res, (err: MulterError) => {
-          
-        resolve();
-      });
-    });
 
-    const pdfPath = path.join(process.cwd(), 'docs', req.file.filename);
-    await run(pdfPath);
+  await upload.single('pdf')
+    await run();
     res.status(200).json({ message: 'Ingestion complete' });
   } catch (error) {
     res.status(500).json({ error: 'Failed to ingest data' });
