@@ -1,6 +1,6 @@
 import { run } from '../../scripts/ingest-data';
 import { NextApiRequest, NextApiResponse } from 'next';
-import multer from 'multer';
+import multer, { MulterError } from 'multer';
 import path from 'path';
 
 const storage = multer.diskStorage({
@@ -21,16 +21,19 @@ export const config = {
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
-    await upload.single('pdf')(req, res, async (err) => {
-      if (err instanceof multer.MulterError) {
-        res.status(500).json({ error: 'Failed to upload file' });
-      } else if (err) {
-        res.status(500).json({ error: 'An unexpected error occurred' });
-      } else {
-        const pdfPath = path.join(process.cwd(), 'docs', req.file.filename);
-        await run(pdfPath);
-        res.status(200).json({ message: 'Ingestion complete' });
+    await upload.single('pdf')(req, res, async (err: MulterError) => {
+      if (err) {
+        if (err instanceof multer.MulterError) {
+          res.status(500).json({ error: 'Failed to upload file' });
+        } else {
+          res.status(500).json({ error: 'An unexpected error occurred' });
+        }
+        return;
       }
+
+      const pdfPath = path.join(process.cwd(), 'docs', req.file.filename);
+      await run(pdfPath);
+      res.status(200).json({ message: 'Ingestion complete' });
     });
   } catch (error) {
     res.status(500).json({ error: 'Failed to ingest data' });
